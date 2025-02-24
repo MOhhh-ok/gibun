@@ -8,8 +8,10 @@ GPTなどの生成AIを使用するほどでもない、テスト用途などで
 
 ## インストール
 
+kuromoji.jsと一緒にインストールします。
+
 ```bash
-npm i gibun
+npm i -D gibun kuromoji.js
 ```
 
 ## 使い方

@@ -1,6 +1,6 @@
 {
   "name": "gibun",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "日本語用、テスト文章生成ライブラリ。マルコフ連鎖を使用しています",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -13,8 +13,10 @@
     "prepublishOnly": "tsc"
   },
   "dependencies": {
-    "kuromoji.js": "^0.1.6",
     "markov-chain-base": "^0.2.1"
+  },
+  "peerDependencies": {
+    "kuromoji.js": "^0.1.6"
   },
   "devDependencies": {
     "@types/kuromoji": "^0.1.3",
