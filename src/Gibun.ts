@@ -11,17 +11,15 @@ export class Gibun {
 
   constructor() {
     this.markovChain = new MarkovChainText();
-    kuromoji
-      .builder({ dicPath: 'node_modules/kuromoji/dict' })
-      .build((err, tokenizer) => {
-        if (err) {
-          this.buildStatus = 'error';
-          throw err;
-        }
-        this.tokenizer = tokenizer;
-        console.log('tokenizer inited');
-        this.buildStatus = 'ready';
-      });
+    kuromoji.builder().build((err, tokenizer) => {
+      if (err) {
+        this.buildStatus = 'error';
+        throw err;
+      }
+      this.tokenizer = tokenizer;
+      console.log('tokenizer inited');
+      this.buildStatus = 'ready';
+    });
   }
 
   async setSeed(seed: string) {
