@@ -17,7 +17,6 @@ export class Gibun {
         throw err;
       }
       this.tokenizer = tokenizer;
-      console.log('tokenizer inited');
       this.buildStatus = 'ready';
     });
   }
