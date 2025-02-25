@@ -31,7 +31,7 @@ async function test() {
     吾輩はここで始めて人間というものを見た。
   `);
 
-  // 生成。長さを指定します。日本語は２倍の結果になります。
+  // 生成。品詞の最大数を指定します。
   const result = gibun.generate(10);
   console.log(result);
 }

@@ -28,13 +28,17 @@ export class Gibun {
     this.markovChain.train(processedText);
   }
 
-  generate(length: number) {
-    const randomMeishi = this.getRandomMeishi();
-    const generatedWords = this.markovChain.generate(randomMeishi, length);
-    return generatedWords.replace(/\s/g, '');
+  generate(maxPos: number) {
+    const words = this.generatePoses(maxPos);
+    return words.join('');
   }
 
-  private getRandomMeishi() {
+  generatePoses(maxPos: number): string[] {
+    const randomNoun = this.getRandomNoun();
+    return this.markovChain.generate(randomNoun, maxPos - 1).split(/\s+/);
+  }
+
+  private getRandomNoun() {
     const meishiTokens = this.tokens.filter((t) => t.pos == '名詞');
     return meishiTokens[Math.floor(Math.random() * meishiTokens.length)]
       .surface_form;
