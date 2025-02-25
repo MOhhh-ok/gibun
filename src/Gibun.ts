@@ -44,7 +44,7 @@ export class Gibun {
       .surface_form;
   }
 
-  async ensureReady(): Promise<boolean> {
+  private async ensureReady(): Promise<boolean> {
     if (this.buildStatus !== 'ready') {
       await new Promise((resolve) => setTimeout(resolve, 100));
       return this.ensureReady();
