@@ -38,7 +38,7 @@ async function test() {
 
 test();
 // 結果例
-// 「我々を見た時何だかフワフワした所で」
+// 「ここで生れた。吾輩は記憶して」
 ```
 
 ## サンプルデータ
@@ -67,6 +67,14 @@ export const samples = {
 これが人間の飲む煙草というものである事はようやくこの頃知った。
 `,
 };
+```
+
+インポートしてご利用ください。
+
+```typescript
+import { gibun, samples } from 'gibun';
+
+await gibun.setSeed(samples.cat);
 ```
 
 ## ライセンス
