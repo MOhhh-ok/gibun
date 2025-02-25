@@ -33,12 +33,10 @@ async function test() {
 
   // 生成。品詞の最大数を指定します。
   const result = gibun.generate(10);
-  console.log(result);
+  console.log(result); // 「ここで生れた。吾輩は記憶して」
 }
 
 test();
-// 結果例
-// 「ここで生れた。吾輩は記憶して」
 ```
 
 ## サンプルデータ
