@@ -10,7 +10,6 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
-    "patch": "git add . && git commit -m \"patch\" && git push && npm version patch",
     "prepublishOnly": "tsc"
   },
   "dependencies": {
