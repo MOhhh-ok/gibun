@@ -3,10 +3,13 @@ import kuromoji from 'kuromoji.js';
 import Tokenizer from 'kuromoji.js/dist/types/kuromoji-core/Tokenizer';
 import { TOKEN } from 'kuromoji.js/dist/types/kuromoji-core/util/IpadicFormatter';
 
+const minPos = 10;
+const maxPos = 200;
+
 export class Gibun {
   markovChain: any;
   tokenizer: Tokenizer | undefined;
-  tokens: TOKEN[] = [];
+  nouns: Set<string> = new Set();
   buildStatus: 'building' | 'ready' | 'error' = 'building';
 
   constructor() {
@@ -21,27 +24,48 @@ export class Gibun {
     });
   }
 
-  async setSeed(seed: string) {
+  async train(data: string | string[], options?: { split?: boolean }) {
     await this.ensureReady();
-    this.tokens = this.tokenizer!.tokenize(seed);
-    const processedText = this.tokens.map((t) => t.surface_form).join(' ');
-    this.markovChain.train(processedText);
+    let sentences = Array.isArray(data) ? data : [data];
+    if (options?.split) {
+      sentences = sentences.map(this.splitSentences).flat();
+    }
+    for (const sentence of sentences) {
+      const tokens = this.tokenizer!.tokenize(sentence);
+      this.registerNouns(tokens);
+      const processedText = tokens.map((t) => t.surface_form).join(' ');
+      this.markovChain.train(processedText);
+    }
   }
 
-  generate(maxPos: number) {
-    const words = this.generatePoses(maxPos);
-    return words.join('');
+  generate(params: { minLength: number; maxLength?: number }) {
+    let result = '';
+    while (result.length < params.minLength) {
+      const words = this.generatePoses();
+      result += words.join('');
+    }
+    if (params.maxLength) result = result.slice(0, params.maxLength);
+    return result;
   }
 
-  generatePoses(maxPos: number): string[] {
+  generatePoses(): string[] {
     const randomNoun = this.getRandomNoun();
-    return this.markovChain.generate(randomNoun, maxPos - 1).split(/\s+/);
+    return this.markovChain
+      .generate(randomNoun, (poses: any[]) => poses.length <= maxPos)
+      .split(/\s+/);
+  }
+
+  private registerNouns(tokens: TOKEN[]) {
+    for (const token of tokens) {
+      if (token.pos === '名詞') {
+        this.nouns.add(String(token.surface_form));
+      }
+    }
   }
 
   private getRandomNoun() {
-    const meishiTokens = this.tokens.filter((t) => t.pos == '名詞');
-    return meishiTokens[Math.floor(Math.random() * meishiTokens.length)]
-      .surface_form;
+    const nouns = Array.from(this.nouns);
+    return nouns[Math.floor(Math.random() * nouns.length)];
   }
 
   private async ensureReady(): Promise<boolean> {
@@ -50,5 +74,9 @@ export class Gibun {
       return this.ensureReady();
     }
     return true;
+  }
+
+  private splitSentences(text: string) {
+    return text.split(/(?<=[。|！|？]+)/);
   }
 }

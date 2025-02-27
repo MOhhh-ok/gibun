@@ -1,6 +1,6 @@
 {
   "name": "gibun",
-  "version": "0.0.9",
+  "version": "0.1.0",
   "description": "日本語用、テスト文章生成ライブラリ。マルコフ連鎖を使用しています",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -10,6 +10,7 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
+    "test": "tsx src/test.ts",
     "prepublishOnly": "tsc"
   },
   "dependencies": {
