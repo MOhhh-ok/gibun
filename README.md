@@ -19,7 +19,7 @@ npm i -D gibun kuromoji.js
 サンプル文章を設定して、生成します。
 
 ```typescript
-import { gibun } from './index';
+import { gibun } from 'gibun';
 
 async function test() {
   await gibun.train(
