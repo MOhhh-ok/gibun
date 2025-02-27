@@ -59,12 +59,12 @@ await gibun.train(['名前はまだ無い。', 'どこで生れたかとんと�
 
 文章を生成します。
 
-- options?
-  - minLength?: 最小文字数
+- params
+  - minLength: 最小文字数
   - maxLength?: 最大文字数
 
 ```typescript
-gibun.generate(options?: { minLength?: number, maxLength?: number }): string
+gibun.generate(params: { minLength: number, maxLength?: number }): string
 ```
 
 例:
