@@ -1,8 +1,8 @@
-import { gibun, samples } from './index';
+import { gibun } from "./index.js";
 
 async function test() {
   // await gibun.train(samples.cat);
-  await gibun.train(samples.kokoro);
+  // await gibun.train(samples.kokoro);
   // await gibun.train(
   //   `
   //   私はその人を常に先生と呼んでいた。だからここでもただ先生と書くだけで本名は打ち明けない。

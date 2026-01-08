@@ -1,7 +1,5 @@
-const { MarkovChainText } = require('markov-chain-base');
-import kuromoji from 'kuromoji.js';
-import Tokenizer from 'kuromoji.js/dist/types/kuromoji-core/Tokenizer';
-import { TOKEN } from 'kuromoji.js/dist/types/kuromoji-core/util/IpadicFormatter';
+import kuromoji from "kuromoji.js";
+import { MarkovChainText } from "markov-chain-base";
 
 const minPos = 10;
 const maxPos = 200;
@@ -10,17 +8,17 @@ export class Gibun {
   markovChain: any;
   tokenizer: Tokenizer | undefined;
   nouns: Set<string> = new Set();
-  buildStatus: 'building' | 'ready' | 'error' = 'building';
+  buildStatus: "building" | "ready" | "error" = "building";
 
   constructor() {
     this.markovChain = new MarkovChainText();
-    kuromoji.builder().build((err, tokenizer) => {
+    kuromoji.builder().build((err: Error | null, tokenizer: Tokenizer) => {
       if (err) {
-        this.buildStatus = 'error';
+        this.buildStatus = "error";
         throw err;
       }
       this.tokenizer = tokenizer;
-      this.buildStatus = 'ready';
+      this.buildStatus = "ready";
     });
   }
 
@@ -33,16 +31,16 @@ export class Gibun {
     for (const sentence of sentences) {
       const tokens = this.tokenizer!.tokenize(sentence);
       this.registerNouns(tokens);
-      const processedText = tokens.map((t) => t.surface_form).join(' ');
+      const processedText = tokens.map((t) => t.surface_form).join(" ");
       this.markovChain.train(processedText);
     }
   }
 
   generate(params: { minLength: number; maxLength?: number }) {
-    let result = '';
+    let result = "";
     while (result.length < params.minLength) {
       const words = this.generatePoses();
-      result += words.join('');
+      result += words.join("");
     }
     if (params.maxLength) result = result.slice(0, params.maxLength);
     return result;
@@ -57,7 +55,7 @@ export class Gibun {
 
   private registerNouns(tokens: TOKEN[]) {
     for (const token of tokens) {
-      if (token.pos === '名詞') {
+      if (token.pos === "名詞") {
         this.nouns.add(String(token.surface_form));
       }
     }
@@ -69,7 +67,7 @@ export class Gibun {
   }
 
   private async ensureReady(): Promise<boolean> {
-    if (this.buildStatus !== 'ready') {
+    if (this.buildStatus !== "ready") {
       await new Promise((resolve) => setTimeout(resolve, 100));
       return this.ensureReady();
     }

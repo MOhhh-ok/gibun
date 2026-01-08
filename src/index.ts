@@ -1,5 +1,4 @@
-import { Gibun } from './Gibun';
-export * from './samples';
+import { Gibun } from "./Gibun.js";
 
 const gibun = new Gibun();
 export { gibun };
