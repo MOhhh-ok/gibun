@@ -1,4 +1,4 @@
-import { describe, test, expect } from "vitest";
+import { describe, expect, test } from "vitest";
 import { Gibun } from "./Gibun.js";
 import { PRESET_NAMES } from "./types/types.js";
 
@@ -7,7 +7,7 @@ describe("プリセットの読み込みテスト", () => {
     const gibun = new Gibun();
 
     // プリセットの読み込みがエラーなく完了することを確認
-    await expect(gibun.trainPreset(presetName)).resolves.not.toThrow();
+    await expect(gibun.trainPreset(presetName)).resolves.toBeUndefined();
 
     // 学習後に名詞が登録されていることを確認
     expect(gibun.nouns.size).toBeGreaterThan(0);
