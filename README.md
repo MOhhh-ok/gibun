@@ -75,17 +75,41 @@ gibun.generate({minLength: 20, maxLength: 30})
 
 ## サンプルデータ
 
-以下の冒頭をサンプルとして同梱しています。
+以下のプリセットをサンプルとして同梱しています。
 
-- 吾輩は猫である
-- こころ
+### 文学作品
+- `samples.cat` - 吾輩は猫である（夏目漱石）
+
+### 現代風ジャンル別
+- `samples.business` - ビジネス文書風（議事録、報告書など）
+- `samples.sns` - SNS投稿風（カジュアルな短文、絵文字入り）
+- `samples.blog` - ブログ記事風（です・ます調の説明文）
+- `samples.news` - ニュース記事風（客観的な報道文）
 
 下記のようにインポートしてご利用ください。
 
 ```typescript
 import { gibun, samples } from 'gibun';
 
-await gibun.train(samples.kokoro);
+// ビジネス文書風
+await gibun.train(samples.business);
+const businessText = gibun.generate({ minLength: 30, maxLength: 50 });
+
+// SNS投稿風
+await gibun.train(samples.sns);
+const snsText = gibun.generate({ minLength: 20, maxLength: 40 });
+
+// ブログ記事風
+await gibun.train(samples.blog);
+const blogText = gibun.generate({ minLength: 30, maxLength: 50 });
+
+// ニュース記事風
+await gibun.train(samples.news);
+const newsText = gibun.generate({ minLength: 30, maxLength: 50 });
+
+// 吾輩は猫である
+await gibun.train(samples.cat);
+const catText = gibun.generate({ minLength: 30, maxLength: 50 });
 ```
 
 ## ライセンス
