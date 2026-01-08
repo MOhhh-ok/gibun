@@ -1,13 +1,13 @@
-import { describe, expect, test } from "vitest";
+import { describe, expect, test } from "bun:test";
 import { Gibun } from "./Gibun.js";
-import { PRESET_NAMES } from "./types/types.js";
+import { PRESET_NAMES, type PresetName } from "./types/types.js";
 
 describe("プリセットの読み込みテスト", () => {
-  test.each(PRESET_NAMES)("%s プリセットが正常に読み込まれる", async (presetName) => {
+  test.each([...PRESET_NAMES])("%s プリセットが正常に読み込まれる", async (presetName) => {
     const gibun = new Gibun();
 
     // プリセットの読み込みがエラーなく完了することを確認
-    await expect(gibun.trainPreset(presetName)).resolves.toBeUndefined();
+    expect(await gibun.trainPreset(presetName as PresetName)).toBeUndefined();
 
     // 学習後に名詞が登録されていることを確認
     expect(gibun.nouns.size).toBeGreaterThan(0);
@@ -18,9 +18,9 @@ describe("プリセットの読み込みテスト", () => {
 });
 
 describe("各プリセットの生成結果確認（目視用）", () => {
-  test.each(PRESET_NAMES)("%s プリセットでテキストを生成", async (presetName) => {
+  test.each([...PRESET_NAMES])("%s プリセットでテキストを生成", async (presetName) => {
     const gibun = new Gibun();
-    await gibun.trainPreset(presetName);
+    await gibun.trainPreset(presetName as PresetName);
 
     const result = gibun.generate({ minLength: 30, maxLength: 100 });
 

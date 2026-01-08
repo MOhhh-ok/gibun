@@ -16,7 +16,28 @@ npm i -D gibun kuromoji.js
 
 ## 使い方
 
-サンプル文章を設定して、生成します。
+### プリセットを使用する
+
+プリセットをトレーニングデータとして用います。
+
+```typescript
+import { gibun } from 'gibun';
+
+async function test() {
+  // プリセットを読み込む
+  await gibun.trainPreset('business');
+  
+  // 文章を生成
+  const result = gibun.generate({ minLength: 30, maxLength: 50 });
+  console.log(result);
+}
+
+test();
+```
+
+### 独自文章を使用する
+
+独自文章をトレーニングすることも可能です。
 
 ```typescript
 import { gibun } from 'gibun';
@@ -39,78 +60,114 @@ async function test() {
 test();
 ```
 
+### 文章の分割オプション
+
+`split` オプションを使用すると、句点で文章を自動的に分割してトレーニングできます。
+
+```typescript
+await gibun.train('吾輩は猫である。名前はまだ無い。', { split: true });
+```
+
+## プリセット一覧
+
+以下のプリセットをサンプルとして同梱しています。
+
+### 現代風ジャンル別
+- `business` - ビジネス文書風（議事録、報告書など）
+- `sns` - SNS投稿風（カジュアルな短文、絵文字入り）
+- `blog` - ブログ記事風（です・ます調の説明文）
+- `news` - ニュース記事風（客観的な報道文）
+
+### プロフィール系
+- `profile_business` - ビジネス向けプロフィール文
+- `profile_sns` - SNS向けプロフィール文
+
+### 文学作品
+- `cat` - 吾輩は猫である（夏目漱石）
+
+
 ## API
+
+### プリセットでトレーニング
+
+事前に用意されたプリセットを使用してトレーニングします。
+
+```typescript
+gibun.trainPreset(preset: PresetName): Promise<void>
+```
+
+**パラメータ:**
+- `preset`: プリセット名（文字列）
+
+**例:**
+```typescript
+await gibun.trainPreset('business');
+await gibun.trainPreset('sns');
+await gibun.trainPreset('cat');
+```
 
 ### トレーニング
 
 文章を渡します。
 
 ```typescript
-gibun.train(text: string | string[]): Promise<void>
+gibun.train(text: string | string[], options?: { split?: boolean }): Promise<void>
 ```
 
-例：
+**パラメータ:**
+- `text`: トレーニング用の文章（文字列または文字列配列）
+- `options.split`: `true` の場合、句点で文章を自動分割します（デフォルト: `false`）
+
+**例:**
 ```typescript
 await gibun.train('吾輩は猫である。');
 await gibun.train(['名前はまだ無い。', 'どこで生れたかとんと見当がつかぬ。']);
+await gibun.train('吾輩は猫である。名前はまだ無い。', { split: true });
 ```
 
 ### 生成
 
 文章を生成します。
 
-- params
-  - minLength: 最小文字数
-  - maxLength?: 最大文字数
-
 ```typescript
-gibun.generate(params: { minLength: number, maxLength?: number }): string
+gibun.generate(params?: { minLength: number, maxLength?: number }): string
 ```
 
-例:
+**パラメータ:**
+- `minLength`: 最小文字数（デフォルト: 100）
+- `maxLength`: 最大文字数（省略可）
 
+**例:**
 ```typescript
-gibun.generate({minLength: 20, maxLength: 30})
+gibun.generate({ minLength: 20, maxLength: 30 });
+gibun.generate({ minLength: 50 }); // maxLengthなし
 ```
 
-## サンプルデータ
+## クラスインスタンス
 
-以下のプリセットをサンプルとして同梱しています。
+デフォルトのインスタンスではなく、独自のインスタンスを作成することもできます。
 
-### 文学作品
-- `samples.cat` - 吾輩は猫である（夏目漱石）
-
-### 現代風ジャンル別
-- `samples.business` - ビジネス文書風（議事録、報告書など）
-- `samples.sns` - SNS投稿風（カジュアルな短文、絵文字入り）
-- `samples.blog` - ブログ記事風（です・ます調の説明文）
-- `samples.news` - ニュース記事風（客観的な報道文）
-
-下記のようにインポートしてご利用ください。
+異なるトレーニングデータを分離して管理できます。
 
 ```typescript
-import { gibun, samples } from 'gibun';
+import { Gibun } from 'gibun';
 
-// ビジネス文書風
-await gibun.train(samples.business);
-const businessText = gibun.generate({ minLength: 30, maxLength: 50 });
+// ビジネス用のインスタンス
+const businessGibun = new Gibun();
+await businessGibun.trainPreset('business');
+const businessText = businessGibun.generate({ minLength: 30, maxLength: 50 });
 
-// SNS投稿風
-await gibun.train(samples.sns);
-const snsText = gibun.generate({ minLength: 20, maxLength: 40 });
+// SNS用のインスタンス
+const snsGibun = new Gibun();
+await snsGibun.trainPreset('sns');
+const snsText = snsGibun.generate({ minLength: 20, maxLength: 40 });
 
-// ブログ記事風
-await gibun.train(samples.blog);
-const blogText = gibun.generate({ minLength: 30, maxLength: 50 });
-
-// ニュース記事風
-await gibun.train(samples.news);
-const newsText = gibun.generate({ minLength: 30, maxLength: 50 });
-
-// 吾輩は猫である
-await gibun.train(samples.cat);
-const catText = gibun.generate({ minLength: 30, maxLength: 50 });
+// カスタムデータ用のインスタンス
+const customGibun = new Gibun();
+await customGibun.train('独自の文章データ');
+const customText = customGibun.generate({ minLength: 20 });
 ```
+
 
 ## ライセンス
 
