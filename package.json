@@ -15,7 +15,10 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
-    "test": "tsx src/test.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:ui": "vitest --ui",
+    "test:old": "tsx src/test.ts",
     "type-check": "tsc --noEmit",
     "prepublishOnly": "tsc"
   },
@@ -27,7 +30,9 @@
     "kuromoji.js": "^0.1.6"
   },
   "devDependencies": {
-    "release-it": "^19.2.3"
+    "@vitest/ui": "4.0.16",
+    "release-it": "^19.2.3",
+    "vitest": "^4.0.16"
   },
   "license": "MIT"
 }
