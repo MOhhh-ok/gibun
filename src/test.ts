@@ -2,6 +2,10 @@ import { Gibun } from "./Gibun.js";
 import { samples } from "./index.js";
 
 async function test() {
+  const aaa = new Gibun();
+  await aaa.trainPreset("business");
+  console.log(aaa.generate());
+  return;
   // ビジネス文書風
   console.log("=== ビジネス文書風 ===");
   const gibunBusiness = new Gibun();

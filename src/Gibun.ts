@@ -1,8 +1,11 @@
 import kuromoji from "kuromoji.js";
 import { MarkovChainText } from "markov-chain-base";
+import { PresetName } from "./types/types.js";
 
 const minPos = 10;
 const maxPos = 200;
+
+const MIN_LENGTH = 100;
 
 export class Gibun {
   markovChain: any;
@@ -22,6 +25,11 @@ export class Gibun {
     });
   }
 
+  async trainPreset(preset: PresetName) {
+    const data = await import(`./presets/${preset}.js`).then((module) => module.default);
+    await this.train(data);
+  }
+
   async train(data: string | string[], options?: { split?: boolean }) {
     await this.ensureReady();
     let sentences = Array.isArray(data) ? data : [data];
@@ -36,13 +44,14 @@ export class Gibun {
     }
   }
 
-  generate(params: { minLength: number; maxLength?: number }) {
+  generate(params?: { minLength: number; maxLength?: number }) {
+    const { minLength = MIN_LENGTH, maxLength } = params || {};
     let result = "";
-    while (result.length < params.minLength) {
+    while (result.length < minLength) {
       const words = this.generatePoses();
       result += words.join("");
     }
-    if (params.maxLength) result = result.slice(0, params.maxLength);
+    if (maxLength) result = result.slice(0, maxLength);
     return result;
   }
 
