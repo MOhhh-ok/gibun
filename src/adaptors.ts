@@ -1,7 +1,9 @@
 import { Token } from "./types/types.js";
 
 /**
- * TinySegmenterを使用。Node.jsとBrowser両対応
+ * TinySegmenterを使用。
+ * 名詞の抽出が行えないため、生成文章冒頭が不自然になる可能性がある。
+ * Node.jsとBrowser両対応
  */
 export const createTinySegmenterTokenizer = () => {
   return async (text: string): Promise<Token[]> => {
@@ -16,7 +18,9 @@ export const createTinySegmenterTokenizer = () => {
 };
 
 /**
- * kuromojinを使用。Node.jsのみ
+ * kuromojinを使用。
+ * 名詞の抽出により生成文章冒頭が安定する。
+ * Node.jsのみ
  */
 export const createKuromojinTokenizer = () => {
   return async (text: string): Promise<Token[]> => {

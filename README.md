@@ -8,31 +8,70 @@ GPTなどの生成AIを使用するほどでもない、テストデータ生成
 
 ## インストール
 
-kuromoji.jsと一緒にインストールします。
+```bash
+npm i -D gibun
+```
+
+デフォルトでは軽量な`tiny-segmenter`を使用します。より高精度な形態素解析が必要な場合は、`kuromojin`を追加でインストールしてください。
 
 ```bash
-npm i -D gibun kuromoji.js
+npm i -D gibun kuromojin
 ```
 
 ## 使い方
 
-### プリセットを使用する
+### 基本的な使い方
 
-プリセットをトレーニングデータとして用います。
+デフォルトでは`tiny-segmenter`による形態素解析を使用します。
 
 ```typescript
-import { gibun } from 'gibun';
+import { Gibun } from 'gibun';
 
-async function test() {
-  // プリセットを読み込む
-  await gibun.trainPreset('business');
-  
-  // 文章を生成
-  const result = gibun.generate({ minLength: 30, maxLength: 50 });
-  console.log(result);
-}
+const gibun = new Gibun();
 
-test();
+// プリセットを読み込む
+await gibun.trainPreset('business');
+
+// 文章を生成
+const result = gibun.generate({ minLength: 30, maxLength: 50 });
+console.log(result);
+```
+
+### カスタムTokenizerを使用する
+
+より高精度な形態素解析が必要な場合は、`createKuromojinTokenizer`を使用できます。
+
+```typescript
+import { Gibun, createKuromojinTokenizer } from 'gibun';
+
+// kuromojinを使用するインスタンスを作成
+const gibun = new Gibun({
+  tokenizer: createKuromojinTokenizer()
+});
+
+await gibun.trainPreset('business');
+const result = gibun.generate({ minLength: 30, maxLength: 50 });
+console.log(result);
+```
+
+独自のTokenizerを実装することもできます。
+
+```typescript
+import { Gibun, Token } from 'gibun';
+
+// カスタムTokenizerを作成
+const customTokenizer = async (text: string): Promise<Token[]> => {
+  // 独自の形態素解析処理
+  const tokens = yourCustomAnalyzer(text);
+  return tokens.map(token => ({
+    value: token.surface,
+    isNoun: token.partOfSpeech === '名詞'
+  }));
+};
+
+const gibun = new Gibun({
+  tokenizer: customTokenizer
+});
 ```
 
 ### 独自文章を使用する
@@ -40,32 +79,20 @@ test();
 独自文章をトレーニングすることも可能です。
 
 ```typescript
-import { gibun } from 'gibun';
+import { Gibun } from 'gibun';
 
-async function test() {
-  await gibun.train(
-    `
-    私はその人を常に先生と呼んでいた。だからここでもただ先生と書くだけで本名は打ち明けない。
-    これは世間をはばかる遠慮というよりも、そのほうが私にとって自然だからである。
-    私はその人の記憶を呼び起こすごとに、すぐ「先生」と言いたくなる。
-    筆を執っても心持ちは同じことである。
-    よそよそしい頭かしら文も字じなどはとても使う気にならない。
-    `
-  );
+const gibun = new Gibun();
 
-  const result = gibun.generate({ minLength: 20, maxLength: 30 });
-  console.log(result); // 自然だからである。これは同じことである。私は同じことで本名は
-}
+await gibun.train(`
+  私はその人を常に先生と呼んでいた。だからここでもただ先生と書くだけで本名は打ち明けない。
+  これは世間をはばかる遠慮というよりも、そのほうが私にとって自然だからである。
+  私はその人の記憶を呼び起こすごとに、すぐ「先生」と言いたくなる。
+  筆を執っても心持ちは同じことである。
+  よそよそしい頭かしら文も字じなどはとても使う気にならない。
+`);
 
-test();
-```
-
-### 文章の分割オプション
-
-`split` オプションを使用すると、句点で文章を自動的に分割してトレーニングできます。
-
-```typescript
-await gibun.train('吾輩は猫である。名前はまだ無い。', { split: true });
+const result = gibun.generate({ minLength: 20, maxLength: 30 });
+console.log(result); // 自然だからである。これは同じことである。私は同じことで本名は
 ```
 
 ## プリセット一覧
@@ -143,29 +170,63 @@ gibun.generate({ minLength: 20, maxLength: 30 });
 gibun.generate({ minLength: 50 }); // maxLengthなし
 ```
 
-## クラスインスタンス
+## Tokenizerについて
 
-デフォルトのインスタンスではなく、独自のインスタンスを作成することもできます。
+### デフォルトTokenizer（TinySegmenter）
 
-異なるトレーニングデータを分離して管理できます。
+デフォルトでは`tiny-segmenter`を使用します。
+
+**メリット:**
+- 軽量で高速
+- Node.js・ブラウザ両対応
+- 辞書不要
+
+**デメリット:**
+- 名詞の抽出ができないため、生成文章の冒頭が不自然になる可能性がある
+
+### KuromojinTokenizer
+
+より高精度な形態素解析には`kuromojin`を使用できます。
+
+**メリット:**
+- 名詞の抽出により生成文章の冒頭が安定する
+- 高精度な形態素解析
+
+**デメリット:**
+- Node.jsのみ対応（ブラウザ未対応）
+- 辞書ファイルの読み込みが必要
+
+### カスタムTokenizer
+
+独自の形態素解析エンジン（MeCab、Sudachiなど）を使用することも可能です。`Tokenizer`型に準拠した関数を実装してください。
 
 ```typescript
-import { Gibun } from 'gibun';
+type Token = {
+  value: string;    // トークンの文字列
+  isNoun: boolean;  // 名詞かどうか
+};
 
-// ビジネス用のインスタンス
-const businessGibun = new Gibun();
+type Tokenizer = (text: string) => Promise<Token[]>;
+```
+
+## 複数インスタンスの管理
+
+異なるトレーニングデータやTokenizerを分離して管理できます。
+
+```typescript
+import { Gibun, createKuromojinTokenizer } from 'gibun';
+
+// ビジネス用（高精度）
+const businessGibun = new Gibun({
+  tokenizer: createKuromojinTokenizer()
+});
 await businessGibun.trainPreset('business');
 const businessText = businessGibun.generate({ minLength: 30, maxLength: 50 });
 
-// SNS用のインスタンス
-const snsGibun = new Gibun();
+// SNS用（軽量）
+const snsGibun = new Gibun(); // デフォルトのtiny-segmenterを使用
 await snsGibun.trainPreset('sns');
 const snsText = snsGibun.generate({ minLength: 20, maxLength: 40 });
-
-// カスタムデータ用のインスタンス
-const customGibun = new Gibun();
-await customGibun.train('独自の文章データ');
-const customText = customGibun.generate({ minLength: 20 });
 ```
 
 
