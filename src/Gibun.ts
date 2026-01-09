@@ -1,6 +1,23 @@
 import { MarkovChainBase, MarkovChainText } from "markov-chain-base";
-import { createKuromojinTokenizer } from "./adaptors.js";
+import { createKuromojinTokenizer, createTinySegmenterTokenizer } from "./adaptors.js";
+import blogPreset from "./presets/blog.js";
+import businessPreset from "./presets/business.js";
+import catPreset from "./presets/cat.js";
+import newsPreset from "./presets/news.js";
+import profileBusinessPreset from "./presets/profile_business.js";
+import profileSnsPreset from "./presets/profile_sns.js";
+import snsPreset from "./presets/sns.js";
 import { PresetName, Token, Tokenizer } from "./types/types.js";
+
+const presetMap: Record<PresetName, string> = {
+  business: businessPreset,
+  sns: snsPreset,
+  blog: blogPreset,
+  news: newsPreset,
+  profile_business: profileBusinessPreset,
+  profile_sns: profileSnsPreset,
+  cat: catPreset,
+};
 
 const minPos = 10;
 const maxPos = 200;
@@ -18,12 +35,15 @@ export class Gibun {
   buildStatus: "building" | "ready" | "error" = "ready";
 
   constructor(params?: GibunParams) {
-    this.tokenizer = params?.tokenizer || createKuromojinTokenizer();
+    this.tokenizer = params?.tokenizer || createTinySegmenterTokenizer();
     this.markovChain = new MarkovChainText();
   }
 
   async trainPreset(preset: PresetName) {
-    const data = await import(`./presets/${preset}.js`).then((module) => module.default);
+    const data = presetMap[preset];
+    if (!data) {
+      throw new Error(`Preset "${preset}" not found`);
+    }
     await this.train(data);
   }
 

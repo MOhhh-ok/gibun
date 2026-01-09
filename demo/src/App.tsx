@@ -1,8 +1,8 @@
 import { Gibun } from "gibun";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import "./App.css";
 
-type PresetName = "business" | "sns" | "blog" | "news" | "profile_business" | "profile_sns" | "cat";
+type PresetName = "none" | "business" | "sns" | "blog" | "news" | "profile_business" | "profile_sns" | "cat";
 
 interface PresetInfo {
   name: PresetName;
@@ -11,6 +11,7 @@ interface PresetInfo {
 }
 
 const presets: PresetInfo[] = [
+  { name: "none", label: "プリセットなし", description: "初期状態（トレーニングなし）" },
   { name: "business", label: "ビジネス文書", description: "議事録、報告書風の文章" },
   { name: "sns", label: "SNS投稿", description: "カジュアルな短文、絵文字入り" },
   { name: "blog", label: "ブログ記事", description: "です・ます調の説明文" },
@@ -21,8 +22,8 @@ const presets: PresetInfo[] = [
 ];
 
 function App() {
-  const [gibunInstance] = useState(() => new Gibun());
-  const [selectedPreset, setSelectedPreset] = useState<PresetName>("business");
+  const gibunRef = useRef<Gibun>(new Gibun());
+  const [selectedPreset, setSelectedPreset] = useState<PresetName>("none");
   const [generatedText, setGeneratedText] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
   const [minLength, setMinLength] = useState(50);
@@ -31,10 +32,17 @@ function App() {
   const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
-    const init = async () => {
+    const fn = async () => {
       setIsLoading(true);
+      setGeneratedText("");
       try {
-        await gibunInstance.trainPreset(selectedPreset);
+        const gibun = new Gibun();
+        if (selectedPreset === "none") {
+          setIsInitialized(false);
+        } else {
+          await gibun.trainPreset(selectedPreset);
+        }
+        gibunRef.current = gibun;
         setIsInitialized(true);
       } catch (error) {
         console.error("初期化エラー:", error);
@@ -43,23 +51,8 @@ function App() {
         setIsLoading(false);
       }
     };
-    init();
-  }, []);
-
-  const handlePresetChange = async (preset: PresetName) => {
-    setSelectedPreset(preset);
-    setIsLoading(true);
-    setGeneratedText("");
-    try {
-      await gibunInstance.trainPreset(preset);
-      setIsInitialized(true);
-    } catch (error) {
-      console.error("トレーニングエラー:", error);
-      alert("プリセットの読み込みに失敗しました");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    fn();
+  }, [selectedPreset]);
 
   const handleGenerate = () => {
     if (!isInitialized) {
@@ -67,7 +60,7 @@ function App() {
       return;
     }
     try {
-      const result = gibunInstance.generate({ minLength, maxLength: maxLength || undefined });
+      const result = gibunRef.current.generate({ minLength, maxLength: maxLength || undefined });
       setGeneratedText(result);
     } catch (error) {
       console.error("生成エラー:", error);
@@ -82,7 +75,7 @@ function App() {
     }
     setIsLoading(true);
     try {
-      await gibunInstance.train(customText, { split: true });
+      await gibunRef.current.train(customText);
       setIsInitialized(true);
       alert("トレーニングが完了しました！");
       setCustomText("");
@@ -122,7 +115,7 @@ function App() {
               <button
                 key={preset.name}
                 className={`preset-button ${selectedPreset === preset.name ? "active" : ""}`}
-                onClick={() => handlePresetChange(preset.name)}
+                onClick={() => setSelectedPreset(preset.name)}
                 disabled={isLoading}
               >
                 <div className="preset-label">{preset.label}</div>
@@ -132,24 +125,26 @@ function App() {
           </div>
         </section>
 
-        <section className="custom-section">
-          <h2>✍️ カスタムテキストでトレーニング</h2>
-          <textarea
-            className="custom-textarea"
-            value={customText}
-            onChange={(e) => setCustomText(e.target.value)}
-            placeholder="独自の文章を入力してください。句点で自動分割されます。"
-            rows={4}
-            disabled={isLoading}
-          />
-          <button
-            className="train-button"
-            onClick={handleCustomTrain}
-            disabled={isLoading || !customText.trim()}
-          >
-            トレーニング
-          </button>
-        </section>
+        {selectedPreset === "none" && (
+          <section className="custom-section">
+            <h2>✍️ カスタムテキストでトレーニング</h2>
+            <textarea
+              className="custom-textarea"
+              value={customText}
+              onChange={(e) => setCustomText(e.target.value)}
+              placeholder="独自の文章を入力してください。句点で自動分割されます。"
+              rows={4}
+              disabled={isLoading}
+            />
+            <button
+              className="train-button"
+              onClick={handleCustomTrain}
+              disabled={isLoading || !customText.trim()}
+            >
+              トレーニング
+            </button>
+          </section>
+        )}
 
         <section className="settings-section">
           <h2>⚙️ 生成設定</h2>
@@ -210,7 +205,7 @@ function App() {
         <section className="info-section">
           <h2>ℹ️ 使い方</h2>
           <ol>
-            <li>プリセットを選択するか、カスタムテキストでトレーニング</li>
+            <li>プリセットを選択（「プリセットなし」選択時はカスタムテキストでトレーニング可能）</li>
             <li>最小・最大文字数を設定</li>
             <li>「文章を生成」ボタンをクリック</li>
             <li>生成された文章が表示されます</li>

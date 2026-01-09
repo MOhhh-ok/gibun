@@ -1,6 +1,23 @@
 import { Token } from "./types/types.js";
 
-// kuromojinのトークンをGibunのToken型に変換
+/**
+ * TinySegmenterを使用。Node.jsとBrowser両対応
+ */
+export const createTinySegmenterTokenizer = () => {
+  return async (text: string): Promise<Token[]> => {
+    const TinySegmenter = (await import("tiny-segmenter")).default;
+    const segmenter = new TinySegmenter();
+    const tokens = segmenter.segment(text) as string[];
+    return tokens.map((token) => ({
+      value: token,
+      isNoun: true,
+    }));
+  };
+};
+
+/**
+ * kuromojinを使用。Node.jsのみ
+ */
 export const createKuromojinTokenizer = () => {
   return async (text: string): Promise<Token[]> => {
     const { tokenize } = await import("kuromojin");
@@ -12,11 +29,13 @@ export const createKuromojinTokenizer = () => {
   };
 };
 
-export const createKuromojinBrowserTokenizer = () => {
+/** うまく動かない */
+const createKuromojinBrowserTokenizer = (params: { dicPath: string }) => {
   return async (text: string): Promise<Token[]> => {
     const { getTokenizer } = await import("kuromojin");
     const tokenizer = await getTokenizer({
-      dicPath: "https://cdn.jsdelivr.net/npm/kuromoji@0.1.2/dict",
+      // https://形式はkuromojiの不具合で読み込めない
+      dicPath: params.dicPath,
     });
     const tokens = tokenizer.tokenize(text);
     return tokens.map((token) => ({

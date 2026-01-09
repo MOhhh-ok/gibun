@@ -91,6 +91,7 @@ section h2 {
   cursor: pointer;
   transition: all 0.3s ease;
   text-align: left;
+  color: #333;
 }
 
 .preset-button:hover:not(:disabled) {
@@ -114,11 +115,13 @@ section h2 {
   font-weight: bold;
   font-size: 1.1rem;
   margin-bottom: 0.5rem;
+  color: inherit;
 }
 
 .preset-description {
   font-size: 0.9rem;
   opacity: 0.8;
+  color: inherit;
 }
 
 .preset-button.active .preset-description {
