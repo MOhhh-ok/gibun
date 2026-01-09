@@ -23,7 +23,7 @@ const presets: PresetInfo[] = [
 
 function App() {
   const gibunRef = useRef<Gibun>(new Gibun());
-  const [selectedPreset, setSelectedPreset] = useState<PresetName>("none");
+  const [selectedPreset, setSelectedPreset] = useState<PresetName>("business");
   const [generatedText, setGeneratedText] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
   const [minLength, setMinLength] = useState(50);
