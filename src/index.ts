@@ -1,6 +1,5 @@
 import { Gibun } from "./Gibun.js";
+export * from "./adaptors.js";
 
-const gibun = new Gibun();
-
-export { Gibun, gibun };
+export { Gibun };
 export default Gibun;

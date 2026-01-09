@@ -1,13 +1,15 @@
 import { describe, expect, test } from "bun:test";
+import { createKuromojinTokenizer } from "./adaptors.js";
 import { Gibun } from "./Gibun.js";
 import { PRESET_NAMES, type PresetName } from "./types/types.js";
 
 describe("プリセットの読み込みテスト", () => {
   test.each([...PRESET_NAMES])("%s プリセットが正常に読み込まれる", async (presetName) => {
-    const gibun = new Gibun();
+    const tokenizer = createKuromojinTokenizer();
+    const gibun = new Gibun({ tokenizer });
 
     // プリセットの読み込みがエラーなく完了することを確認
-    expect(await gibun.trainPreset(presetName as PresetName)).toBeUndefined();
+    await gibun.trainPreset(presetName as PresetName);
 
     // 学習後に名詞が登録されていることを確認
     expect(gibun.nouns.size).toBeGreaterThan(0);
@@ -19,7 +21,8 @@ describe("プリセットの読み込みテスト", () => {
 
 describe("各プリセットの生成結果確認（目視用）", () => {
   test.each([...PRESET_NAMES])("%s プリセットでテキストを生成", async (presetName) => {
-    const gibun = new Gibun();
+    const tokenizer = createKuromojinTokenizer();
+    const gibun = new Gibun({ tokenizer });
     await gibun.trainPreset(presetName as PresetName);
 
     const result = gibun.generate({ minLength: 30, maxLength: 100 });
@@ -39,7 +42,8 @@ describe("各プリセットの生成結果確認（目視用）", () => {
 
 describe("生成パラメータのテスト", () => {
   test("minLength と maxLength が正しく機能する", async () => {
-    const gibun = new Gibun();
+    const tokenizer = createKuromojinTokenizer();
+    const gibun = new Gibun({ tokenizer });
     await gibun.trainPreset("cat");
 
     const result = gibun.generate({ minLength: 50, maxLength: 80 });
@@ -53,7 +57,8 @@ describe("生成パラメータのテスト", () => {
   });
 
   test("minLength のみ指定した場合", async () => {
-    const gibun = new Gibun();
+    const tokenizer = createKuromojinTokenizer();
+    const gibun = new Gibun({ tokenizer });
     await gibun.trainPreset("sns");
 
     const result = gibun.generate({ minLength: 30 });

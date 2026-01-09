@@ -1,28 +1,25 @@
-import kuromoji from "kuromoji.js";
-import { MarkovChainText } from "markov-chain-base";
-import { PresetName } from "./types/types.js";
+import { MarkovChainBase, MarkovChainText } from "markov-chain-base";
+import { createKuromojinTokenizer } from "./adaptors.js";
+import { PresetName, Token, Tokenizer } from "./types/types.js";
 
 const minPos = 10;
 const maxPos = 200;
 
 const MIN_LENGTH = 100;
 
-export class Gibun {
-  markovChain: any;
-  tokenizer: Tokenizer | undefined;
-  nouns: Set<string> = new Set();
-  buildStatus: "building" | "ready" | "error" = "building";
+export type GibunParams = {
+  tokenizer?: Tokenizer;
+};
 
-  constructor() {
+export class Gibun {
+  tokenizer: Tokenizer;
+  markovChain: MarkovChainBase;
+  nouns: Set<string> = new Set();
+  buildStatus: "building" | "ready" | "error" = "ready";
+
+  constructor(params?: GibunParams) {
+    this.tokenizer = params?.tokenizer || createKuromojinTokenizer();
     this.markovChain = new MarkovChainText();
-    kuromoji.builder().build((err: Error | null, tokenizer: Tokenizer) => {
-      if (err) {
-        this.buildStatus = "error";
-        throw err;
-      }
-      this.tokenizer = tokenizer;
-      this.buildStatus = "ready";
-    });
   }
 
   async trainPreset(preset: PresetName) {
@@ -30,17 +27,16 @@ export class Gibun {
     await this.train(data);
   }
 
-  async train(data: string | string[], options?: { split?: boolean }) {
+  async train(data: string | string[]) {
     await this.ensureReady();
     let sentences = Array.isArray(data) ? data : [data];
-    if (options?.split) {
-      sentences = sentences.map(this.splitSentences).flat();
-    }
+    sentences = sentences.map(this.splitSentences).flat();
     for (const sentence of sentences) {
-      const tokens = this.tokenizer!.tokenize(sentence);
-      this.registerNouns(tokens);
-      const processedText = tokens.map((t) => t.surface_form).join(" ");
-      this.markovChain.train(processedText);
+      const tokens = await this.tokenizer(sentence);
+      const nounTokens = tokens.filter(t => t.isNoun);
+      nounTokens.forEach(noun => this.nouns.add(noun.value));
+      const joined = tokens.map((t) => t.value).join(" ");
+      this.markovChain.train(joined);
     }
   }
 
@@ -60,14 +56,6 @@ export class Gibun {
     return this.markovChain
       .generate(randomNoun, (poses: any[]) => poses.length <= maxPos)
       .split(/\s+/);
-  }
-
-  private registerNouns(tokens: TOKEN[]) {
-    for (const token of tokens) {
-      if (token.pos === "名詞") {
-        this.nouns.add(String(token.surface_form));
-      }
-    }
   }
 
   private getRandomNoun() {
